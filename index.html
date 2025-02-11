@@ -5,19 +5,44 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>Socket.IO Chat</title>
     <script src="/socket.io/socket.io.js"></script>
+    <script src="https://cdn.tailwindcss.com"></script>
   </head>
-  <body>
-    <ul id="messages"></ul>
-    <form id="form" action="">
-      <input id="input" autocomplete="off" /><button>Send</button>
-    </form>
+  <body
+    class="bg-gray-900 text-white flex justify-center items-center h-screen"
+  >
+    <section
+      class="w-full max-w-lg bg-gray-800 rounded-lg shadow-lg p-4 flex flex-col h-3/4"
+    >
+      <h1 class="text-xl font-bold text-center mb-4">Chat Room</h1>
+      <ul
+        id="messages"
+        class="flex-1 overflow-y-auto space-y-2 p-2 flex flex-col"
+      ></ul>
+      <form id="form" action="" class="flex gap-2 mt-2">
+        <input
+          id="input"
+          class="flex-1 p-2 bg-gray-700 rounded-lg text-white outline-none"
+          placeholder="Type a message..."
+          autocomplete="off"
+        />
+        <button class="bg-blue-500 hover:bg-blue-600 px-4 py-2 rounded-lg">
+          Send
+        </button>
+      </form>
+    </section>
 
     <script>
       const socket = io();
-
       const form = document.getElementById("form");
       const input = document.getElementById("input");
       const messages = document.getElementById("messages");
+
+      let myId = null; // Store my socket ID
+
+      // Get my socket ID when connected
+      socket.on("connect", () => {
+        myId = socket.id;
+      });
 
       form.addEventListener("submit", (e) => {
         e.preventDefault();
@@ -29,9 +54,20 @@
 
       socket.on("chat message", (msg) => {
         const item = document.createElement("li");
-        item.textContent = msg;
+        item.textContent = msg.text;
+
+        if (msg.id === myId) {
+          // My message (align to right)
+          item.className =
+            "bg-blue-500 text-white p-2 rounded-lg max-w-fit self-end";
+        } else {
+          // Other users' messages (align to left)
+          item.className =
+            "bg-gray-700 text-white p-2 rounded-lg max-w-fit self-start";
+        }
+
         messages.appendChild(item);
-        window.scrollTo(0, document.body.scrollHeight);
+        messages.scrollTop = messages.scrollHeight;
       });
     </script>
   </body>
